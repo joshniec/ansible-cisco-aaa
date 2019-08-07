@@ -1,0 +1,44 @@
+---
+- name: "IOS - Purge all users except {{ backup_user }} and admin"
+  ios_user:
+    aggregate:
+      - name: "{{ backup_user }}"
+      - name: admin
+    purge: yes
+
+- name: IOS - Create Local Backup User
+  ios_user:
+    name: "{{ backup_user }}"
+    update_password: always
+    configured_password: "{{ backup_pass }}"
+    state: present
+    privilege: 15
+
+- name: IOS - Configure TACACS Server(s)
+  ios_config:
+    lines:
+      - "server-private {{ tac_server }} single-connection key {{ tac_key }}"
+      - "{% if mgmt_vrf %}ip vrf forwarding {{ mgmt_vrf }}{% endif %}"
+      - "ip tacacs source-interface {{ mgmt_intf }}"
+    parents: "aaa group server tacacs+ {{ tac_group }}"
+    match: line
+
+- name: IOS - Configure AAA Settings
+  ios_config:
+    lines:
+      - "aaa new-model"
+      - "aaa session-id common"
+      - "aaa authentication login default group {{ tac_server_group }} local"
+      - "aaa authentication enable default group {{ tac_server_group }} enable"
+      - "aaa authorization config-commands"
+      - "aaa authorization exec default group {{ tac_server_group }} local if-authenticated"
+      - "aaa authorization commands 1 default group {{ tac_server_group }} local if-authenticated"
+      - "aaa authorization commands 15 default group {{ tac_server_group }} local if-authenticated"
+      - "aaa accounting exec default start-stop group {{ tac_server_group }}"
+      - "aaa accounting commands 1 default start-stop group {{ tac_server_group }}"
+      - "aaa accounting commands 15 default start-stop group {{ tac_server_group }}"
+    match: line
+
+- name: IOS - Save TACACS Configuration
+  ios_config:
+    save_when: modified

@@ -1,0 +1,58 @@
+---
+- name: "NXOS - Purge all users except {{ backup_user }} and admin"
+  nxos_user:
+    aggregate:
+      - name: "{{ backup_user }}"
+      - name: admin
+    purge: yes
+
+- name: NXOS - Create Local Backup User
+  nxos_user:
+    name: "{{ backup_user }}"
+    update_password: always
+    configured_password: "{{ backup_pass }}"
+    state: present
+    role: network-admin
+
+- name: NXOS - Enable TACACS Feature
+  nxos_feature:
+    feature: tacacs+
+    state: enabled
+
+- name: NXOS - Configure TACACS Host(s)
+  nxos_aaa_server_host:
+    state: present
+    server_type: tacacs
+    address: "{{ tac_server }}"
+    tacacs_port: 49
+    host_timeout: 3
+    key: "{{ tac_key }}"
+
+- name: NXOS - Configure TACACS Server(s)
+  nxos_config:
+    lines:
+      - "server {{ tac_server }}"
+      - "use-vrf {{ mgmt_vrf }}"
+      - "source-interface {{ mgmt_intf }}"
+    parents: "aaa group server tacacs+ {{ tac_server_group }}"
+    match: line
+
+- name: NXOS - Configure AAA Server Type
+  nxos_aaa_server:
+    server_type: tacacs
+    directed_request: enabled
+
+- name: NXOS - Configure AAA Settings
+  nxos_config:
+    lines:
+      - "aaa authentication login default group {{ tac_server_group }} local"
+      - "aaa authentication login console group {{ tac_server_group }} local"
+      - "aaa authorization config-commands default group {{ tac_server_group }} local"
+      - "aaa authorization commands default group {{ tac_server_group }} local"
+      - "aaa accounting default group {{ tac_server_group }}"
+      - "aaa authentication login ascii-authentication"
+    match: line
+
+- name: NXOS - Save TACACS Configuration
+  nxos_config:
+    save_when: modified

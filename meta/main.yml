@@ -1,0 +1,24 @@
+galaxy_info:
+  role_name: cisco_aaa
+  author: Josh Niec
+  description: your description
+  company: your company (optional)
+
+  license: MIT
+
+  min_ansible_version: 2.4
+
+  platforms:
+    - name: NXOS
+      versions:
+        - all
+    - name: IOS
+      versions:
+        - all
+    - name: ASA
+      versions:
+        - all
+
+  galaxy_tags: []
+
+dependencies: []

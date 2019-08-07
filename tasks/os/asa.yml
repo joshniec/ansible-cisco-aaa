@@ -1,0 +1,34 @@
+---
+- name: ASA - Configure TACACS Protocol
+  asa_config:
+    lines:
+      - ""
+    parents: aaa-server {{ tac_server_group }} protocol tacacs+
+    match: line
+
+- name: ASA - Configure TACACS Server
+  asa_config:
+    lines:
+      - "key {{ tac_key }}"
+    parents: "aaa-server {{ tac_server_group }} ({{ mgmt_intf }}) host {{ tac_server }}"
+    match: line
+
+- name: ASA - Configure AAA Default Items
+  asa_config:
+    lines:
+      - "aaa new-model"
+      - "aaa session-id common"
+      - "aaa authentication login default group {{ tac_server_group }} local"
+      - "aaa authentication enable default group {{ tac_server_group }} enable"
+      - "aaa authorization config-commands"
+      - "aaa authorization exec default group {{ tac_server_group }} local if-authenticated"
+      - "aaa authorization commands 1 default group {{ tac_server_group }} local if-authenticated"
+      - "aaa authorization commands 15 default group {{ tac_server_group }} local if-authenticated"
+      - "aaa accounting exec default start-stop group {{ tac_server_group }}"
+      - "aaa accounting commands 1 default start-stop group {{ tac_server_group }}"
+      - "aaa accounting commands 15 default start-stop group {{ tac_server_group }}"
+    match: line
+
+- name: ASA - Save TACACS Configuration
+  asa_config:
+    save: yes

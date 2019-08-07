@@ -1,0 +1,12 @@
+---
+- name: "ROLE: TACACS, Tasks for NXOS"
+  include_tasks: os/nxos.yml
+  when: ansible_network_os == "nxos"
+
+- name: "ROLE: TACACS, Tasks for IOS"
+  include_tasks: os/ios.yml
+  when: ansible_network_os == "ios"
+
+- name: "ROLE: TACACS, Tasks for ASA"
+  include_tasks: os/asa.yml
+  when: ansible_network_os == "asa"

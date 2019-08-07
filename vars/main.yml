@@ -1,0 +1,7 @@
+---
+tac_server: "{{ aaa_config['tac_server'] }}"
+tac_key: "{{ aaa_config['tac_key'] }}"
+tac_server_group: "{{ aaa_config['tac_server_group'] }}"
+
+mgmt_intf: "{{ management_config['interface'] }}"
+mgmt_vrf: "{{ management_config['vrf'] | default(omit) }}"
